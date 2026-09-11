@@ -1,6 +1,7 @@
 const { Router } = require('express');
+
 const authRoutes = require('./auth.routes');
-const categoriaRoutes = require('./categoria.routes');
+const ordenServicioRoutes = require('./ordenServicio.routes');
 
 const router = Router();
 
@@ -9,6 +10,6 @@ const router = Router();
 // router.use('/services', serviceRoutes);
 // router.use('/requests', requestRoutes);
 router.use('/auth', authRoutes);
-router.use('/categorias', categoriaRoutes);
+router.use('/', ordenServicioRoutes);
 
 module.exports = router;
