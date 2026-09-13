@@ -71,7 +71,52 @@ const crearOrden = async (req, res) => {
   }
 };
 
+// Actualiza el estado de una orden de servicio.
+const actualizarEstado = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { estado } = req.body;
+
+    // Verificamos que se haya enviado el nuevo estado.
+    if (!estado) {
+      return res.status(400).json({
+        success: false,
+        message: 'El estado es obligatorio.',
+      });
+    }
+
+    // Buscamos la orden por su ID.
+    const orden = await OrdenServicio.findByPk(id);
+
+    if (!orden) {
+      return res.status(404).json({
+        success: false,
+        message: 'Orden de servicio no encontrada.',
+      });
+    }
+
+    // Actualizamos el estado de la orden.
+    orden.estado = estado;
+
+    await orden.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Estado de la orden actualizado correctamente.',
+      data: orden,
+    });
+  } catch (error) {
+    console.error('Error al actualizar el estado:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Error al actualizar el estado de la orden.',
+    });
+  }
+};
+
 module.exports = {
   obtenerOrdenes,
   crearOrden,
+  actualizarEstado,
 };
