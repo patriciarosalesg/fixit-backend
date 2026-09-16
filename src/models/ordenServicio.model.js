@@ -30,6 +30,12 @@ const OrdenServicio = sequelize.define(
       allowNull: false,
     },
 
+    costoTotal: {
+  type: DataTypes.DECIMAL(10, 2),
+  allowNull: false,
+  defaultValue: 0,
+},
+
     estado: {
       type: DataTypes.STRING(50),
       allowNull: false,

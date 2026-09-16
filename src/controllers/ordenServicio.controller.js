@@ -1,4 +1,5 @@
 const OrdenServicio = require('../models/ordenServicio.model');
+const { generarFacturaPDF } = require('../services/factura.service');
 
 const obtenerOrdenes = async (req, res) => {
   try {
@@ -28,6 +29,7 @@ const crearOrden = async (req, res) => {
       servicio,
       fechaIngreso,
       fechaEntrega,
+      costoTotal,
       estado,
       tecnico,
     } = req.body;
@@ -53,6 +55,7 @@ const crearOrden = async (req, res) => {
       servicio,
       fechaIngreso,
       fechaEntrega,
+      costoTotal: costoTotal || 0,
       estado,
       tecnico,
     });
@@ -71,21 +74,19 @@ const crearOrden = async (req, res) => {
   }
 };
 
-// Actualiza el estado de una orden de servicio.
-const actualizarEstado = async (req, res) => {
+// Actualiza los datos de una orden de servicio.
+const actualizarOrden = async (req, res) => {
   try {
     const { id } = req.params;
-    const { estado } = req.body;
 
-    // Verificamos que se haya enviado el nuevo estado.
-    if (!estado) {
-      return res.status(400).json({
-        success: false,
-        message: 'El estado es obligatorio.',
-      });
-    }
+    const {
+      equipo,
+      servicio,
+      fechaEntrega,
+      costoTotal,
+      estado,
+    } = req.body;
 
-    // Buscamos la orden por su ID.
     const orden = await OrdenServicio.findByPk(id);
 
     if (!orden) {
@@ -95,22 +96,64 @@ const actualizarEstado = async (req, res) => {
       });
     }
 
-    // Actualizamos el estado de la orden.
-    orden.estado = estado;
+    if (equipo !== undefined) {
+      orden.equipo = equipo;
+    }
+
+    if (servicio !== undefined) {
+      orden.servicio = servicio;
+    }
+
+    if (fechaEntrega !== undefined) {
+      orden.fechaEntrega = fechaEntrega;
+    }
+
+    if (costoTotal !== undefined) {
+      orden.costoTotal = costoTotal;
+    }
+
+    if (estado !== undefined) {
+      orden.estado = estado;
+    }
 
     await orden.save();
 
     return res.status(200).json({
       success: true,
-      message: 'Estado de la orden actualizado correctamente.',
+      message: 'Orden actualizada correctamente.',
       data: orden,
     });
   } catch (error) {
-    console.error('Error al actualizar el estado:', error);
+    console.error('Error al actualizar la orden:', error);
 
     return res.status(500).json({
       success: false,
-      message: 'Error al actualizar el estado de la orden.',
+      message: 'Error al actualizar la orden de servicio.',
+    });
+  }
+};
+
+// Genera la factura PDF de una orden de servicio.
+const generarFactura = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const orden = await OrdenServicio.findByPk(id);
+
+    if (!orden) {
+      return res.status(404).json({
+        success: false,
+        message: 'Orden de servicio no encontrada.',
+      });
+    }
+
+    generarFacturaPDF(orden, res);
+  } catch (error) {
+    console.error('Error al generar la factura:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Error al generar la factura.',
     });
   }
 };
@@ -118,5 +161,6 @@ const actualizarEstado = async (req, res) => {
 module.exports = {
   obtenerOrdenes,
   crearOrden,
-  actualizarEstado,
+  actualizarOrden,
+  generarFactura,
 };

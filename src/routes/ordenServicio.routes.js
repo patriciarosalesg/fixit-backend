@@ -5,14 +5,18 @@ const router = express.Router();
 const {
   obtenerOrdenes,
   crearOrden,
-  actualizarEstado,
+  actualizarOrden,
+  generarFactura,
 } = require('../controllers/ordenServicio.controller');
 
 router.get('/ordenes', obtenerOrdenes);
 
 router.post('/ordenes', crearOrden);
 
-// Actualiza el estado de una orden de servicio.
-router.put('/ordenes/:id', actualizarEstado);
+// Actualiza una orden de servicio.
+router.put('/ordenes/:id', actualizarOrden);
+
+// Genera la factura PDF de una orden.
+router.get('/ordenes/:id/factura', generarFactura);
 
 module.exports = router;
