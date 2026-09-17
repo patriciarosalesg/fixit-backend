@@ -2,24 +2,23 @@ const PDFDocument = require('pdfkit');
 const path = require('path');
 const fs = require('fs');
 
-//Genera una factura PDF profesional para una orden de servicio.
-//Imágenes opcionales:
-//fixit-backend/assets/logo.png
-//fixit-backend/assets/computadora.png
-
+// Genera una factura PDF profesional para una orden de servicio.
 const generarFacturaPDF = (orden, res) => {
   const doc = new PDFDocument({
     size: 'A4',
     margin: 0,
     info: {
       Title: `Factura ${orden.numeroOrden}`,
-      Author: 'My Support Technos Design',
+      Author: 'Tecknos Design Computadoras',
       Subject: 'Factura de servicio técnico',
-      Creator: 'My Support Technos Design',
+      Creator: 'Tecknos Design Computadoras',
     },
   });
 
-  // Colores corporativos.
+  // =========================================================
+  // COLORES CORPORATIVOS
+  // =========================================================
+
   const azul = '#1565C0';
   const azulOscuro = '#0D47A1';
   const azulClaro = '#EAF3FF';
@@ -30,18 +29,18 @@ const generarFacturaPDF = (orden, res) => {
   const blanco = '#FFFFFF';
   const verde = '#16803C';
 
-  // Rutas de imagenes.
+  // =========================================================
+  // RUTAS DE IMAGEN
+  // =========================================================
+
   const logoPath = path.join(__dirname, '../../assets/logo.png');
 
-  const computadoraPath = path.join(
-    __dirname,
-    '../../assets/computadora.png'
-  );
-
   const tieneLogo = fs.existsSync(logoPath);
-  const tieneComputadora = fs.existsSync(computadoraPath);
 
-  // Datos.
+  // =========================================================
+  // DATOS DE LA FACTURA
+  // =========================================================
+
   const numeroOrden = orden.numeroOrden || 'SIN NÚMERO';
   const equipo = orden.equipo || 'No especificado';
   const servicio = orden.servicio || 'Servicio técnico';
@@ -51,387 +50,445 @@ const generarFacturaPDF = (orden, res) => {
   const fechaIngreso = orden.fechaIngreso || '-';
   const fechaEntrega = orden.fechaEntrega || '-';
 
+  const cliente = orden.User || {};
+
+  const nombreCliente = cliente.fullName || 'Cliente no registrado';
+  const correoCliente = cliente.email || 'No registrado';
+
+  const telefonoCliente = 'No registrado';
+  const identidadCliente = 'No registrada';
+
   const costoTotal = Number(orden.costoTotal || 0);
 
-  const totalFormateado = costoTotal.toLocaleString('es-GT', {
+  const totalFormateado = costoTotal.toLocaleString('es-HN', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
-  // Encabezado
-  // Fondo general
-  doc.rect(0, 0, 595.28, 841.89).fill(grisFondo);
+  // =========================================================
+  // FONDO
+  // =========================================================
 
-  // Franja superior
-  doc.rect(0, 0, 595.28, 145).fill(azulOscuro);
+  doc
+    .rect(0, 0, 595.28, 841.89)
+    .fill(grisFondo);
 
-  // Línea azul clara decorativa
-  doc.rect(0, 137, 595.28, 8).fill(azul);
+  // =========================================================
+  // ENCABEZADO
+  // =========================================================
+
+  doc
+    .rect(0, 0, 595.28, 125)
+    .fill(azulOscuro);
+
+  doc
+    .rect(0, 117, 595.28, 8)
+    .fill(azul);
 
   // Logo
   if (tieneLogo) {
     try {
-      doc.image(logoPath, 42, 28, {
-        fit: [100, 75],
+      doc.image(logoPath, 42, 22, {
+        fit: [115, 80],
         align: 'left',
         valign: 'center',
       });
     } catch (error) {
       console.error('No se pudo cargar el logo:', error);
     }
-  } else {
-    // Marca alternativa mientras no exista el logo
-    doc
-      .roundedRect(42, 35, 65, 55, 8)
-      .fill(azul);
-
-    doc
-      .fontSize(22)
-      .font('Helvetica-Bold')
-      .fillColor(blanco)
-      .text('TD', 42, 51, {
-        width: 65,
-        align: 'center',
-      });
   }
 
-  // Nombre de la empresa.
+  // Información de la empresa
   doc
     .font('Helvetica-Bold')
-    .fontSize(22)
+    .fontSize(18)
     .fillColor(blanco)
-   .text('My Support Technos Design', 125, 35);
-
-  doc
-    .font('Helvetica')
-    .fontSize(10)
-    .fillColor('#DDEBFF')
-    .text('Soporte Técnico de Computadoras', 126, 63);
-
-  doc
-    .font('Helvetica-Oblique')
-    .fontSize(9)
-    .fillColor('#C9DEFF')
-    .text('Innovamos, Desarrollamos, Conectamos.', 126, 82);
-
-  // Factura.
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(24)
-    .fillColor(blanco)
-    .text('FACTURA', 390, 38, {
-      width: 165,
-      align: 'right',
+    .text('Tecknos Design Computadoras', 175, 27, {
+      width: 220,
     });
 
   doc
     .font('Helvetica')
-    .fontSize(10)
+    .fontSize(9)
     .fillColor('#DDEBFF')
-    .text(`Orden #${numeroOrden}`, 390, 72, {
-      width: 165,
+    .text('Avenida 14 de Julio, sector Iglesia Suyapa', 175, 52);
+
+  doc
+    .text('La Ceiba, Atlántida, Honduras', 175, 67);
+
+  doc
+    .text('Tel. 3235-5440', 175, 82);
+
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(8)
+    .fillColor('#C9DEFF')
+    .text('RTN: 0801-0000-000000', 175, 98);
+
+  // =========================================================
+  // TÍTULO DE FACTURA
+  // =========================================================
+
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(25)
+    .fillColor(blanco)
+    .text('FACTURA', 420, 29, {
+      width: 135,
       align: 'right',
     });
 
   doc
+    .font('Helvetica')
     .fontSize(9)
-    .fillColor('#C9DEFF')
-    .text(`Fecha: ${fechaEntrega}`, 390, 91, {
-      width: 165,
+    .fillColor('#DDEBFF')
+    .text(`No. ${numeroOrden}`, 420, 62, {
+      width: 135,
       align: 'right',
     });
-  // Contenedor
+
   doc
-    .roundedRect(35, 170, 525, 610, 12)
+    .text(`Fecha: ${fechaEntrega}`, 420, 78, {
+      width: 135,
+      align: 'right',
+    });
+
+  // =========================================================
+  // CONTENEDOR PRINCIPAL
+  // =========================================================
+
+  doc
+    .roundedRect(35, 150, 525, 640, 10)
     .fill(blanco);
 
-  // Informacion de la orden
+  // =========================================================
+  // DATOS DEL CLIENTE
+  // =========================================================
+
   doc
     .font('Helvetica-Bold')
     .fontSize(12)
     .fillColor(azulOscuro)
-    .text('INFORMACIÓN DE LA ORDEN', 55, 195);
+    .text('DATOS DEL CLIENTE', 55, 175);
 
   doc
-    .moveTo(55, 216)
-    .lineTo(540, 216)
+    .moveTo(55, 196)
+    .lineTo(540, 196)
     .lineWidth(1)
     .strokeColor(grisLinea)
     .stroke();
 
-  // Cuadro Equipo
-  doc
-    .roundedRect(55, 235, 235, 72, 8)
-    .fill(azulClaro);
-
+  // Nombre
   doc
     .font('Helvetica-Bold')
-    .fontSize(9)
-    .fillColor(azulOscuro)
-    .text('EQUIPO', 70, 250);
+    .fontSize(8)
+    .fillColor(grisTexto)
+    .text('NOMBRE', 55, 213);
 
   doc
     .font('Helvetica')
-    .fontSize(11)
+    .fontSize(10)
     .fillColor(grisOscuro)
-    .text(equipo, 70, 267, {
-      width: 205,
+    .text(nombreCliente, 55, 227, {
+      width: 225,
     });
 
-  // Cuadro Técnico
-  doc
-    .roundedRect(305, 235, 235, 72, 8)
-    .fill(azulClaro);
-
+  // Identidad
   doc
     .font('Helvetica-Bold')
-    .fontSize(9)
-    .fillColor(azulOscuro)
-    .text('TÉCNICO RESPONSABLE', 320, 250);
+    .fontSize(8)
+    .fillColor(grisTexto)
+    .text('IDENTIDAD', 300, 213);
 
   doc
     .font('Helvetica')
-    .fontSize(11)
+    .fontSize(10)
     .fillColor(grisOscuro)
-    .text(tecnico, 320, 267, {
-      width: 205,
+    .text(identidadCliente, 300, 227);
+
+  // Teléfono
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(8)
+    .fillColor(grisTexto)
+    .text('TELÉFONO', 55, 252);
+
+  doc
+    .font('Helvetica')
+    .fontSize(10)
+    .fillColor(grisOscuro)
+    .text(telefonoCliente, 55, 266);
+
+  // Correo
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(8)
+    .fillColor(grisTexto)
+    .text('CORREO ELECTRÓNICO', 300, 252);
+
+  doc
+    .font('Helvetica')
+    .fontSize(10)
+    .fillColor(grisOscuro)
+    .text(correoCliente, 300, 266, {
+      width: 220,
     });
 
-  // Detalles del servicio
+  // =========================================================
+  // DATOS DE LA ORDEN
+  // =========================================================
+
   doc
     .font('Helvetica-Bold')
     .fontSize(12)
     .fillColor(azulOscuro)
-    .text('DETALLE DEL SERVICIO', 55, 335);
-
-  // Encabezado tabla
-  doc
-    .roundedRect(55, 358, 485, 34, 6)
-    .fill(azulOscuro);
+    .text('DATOS DE LA ORDEN', 55, 305);
 
   doc
-    .font('Helvetica-Bold')
-    .fontSize(9)
-    .fillColor(blanco)
-    .text('DESCRIPCIÓN', 70, 370);
+    .moveTo(55, 326)
+    .lineTo(540, 326)
+    .lineWidth(1)
+    .strokeColor(grisLinea)
+    .stroke();
 
+  // Equipo
   doc
-    .text('SERVICIO', 285, 370);
-
-  doc
-    .text('TOTAL', 455, 370, {
-      width: 65,
-      align: 'right',
-    });
-
-  // Fila de servicio
-  doc
-    .roundedRect(55, 392, 485, 78, 6)
-    .fill('#FAFBFC');
+    .roundedRect(55, 342, 230, 63, 7)
+    .fill(azulClaro);
 
   doc
     .font('Helvetica-Bold')
-    .fontSize(10)
-    .fillColor(grisOscuro)
-    .text(equipo, 70, 410, {
-      width: 195,
-    });
-
-  doc
-    .font('Helvetica')
-    .fontSize(9)
-    .fillColor(grisTexto)
-    .text('Equipo registrado en orden de servicio', 70, 430, {
-      width: 195,
-    });
+    .fontSize(8)
+    .fillColor(azulOscuro)
+    .text('EQUIPO', 70, 356);
 
   doc
     .font('Helvetica')
     .fontSize(10)
     .fillColor(grisOscuro)
-    .text(servicio, 285, 415, {
-      width: 150,
+    .text(equipo, 70, 374, {
+      width: 200,
     });
+
+  // Técnico
+  doc
+    .roundedRect(305, 342, 235, 63, 7)
+    .fill(azulClaro);
 
   doc
     .font('Helvetica-Bold')
+    .fontSize(8)
+    .fillColor(azulOscuro)
+    .text('TÉCNICO RESPONSABLE', 320, 356);
+
+  doc
+    .font('Helvetica')
     .fontSize(10)
     .fillColor(grisOscuro)
-    .text(`$ ${totalFormateado}`, 440, 415, {
-      width: 80,
-      align: 'right',
+    .text(tecnico, 320, 374, {
+      width: 205,
     });
 
   // Fechas
   doc
     .font('Helvetica-Bold')
+    .fontSize(8)
+    .fillColor(grisTexto)
+    .text('FECHA DE INGRESO', 55, 420);
+
+  doc
+    .font('Helvetica')
+    .fontSize(10)
+    .fillColor(grisOscuro)
+    .text(fechaIngreso, 55, 434);
+
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(8)
+    .fillColor(grisTexto)
+    .text('FECHA DE ENTREGA', 215, 420);
+
+  doc
+    .font('Helvetica')
+    .fontSize(10)
+    .fillColor(grisOscuro)
+    .text(fechaEntrega, 215, 434);
+
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(8)
+    .fillColor(grisTexto)
+    .text('ESTADO', 390, 420);
+
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(10)
+    .fillColor(verde)
+    .text(estado, 390, 434);
+
+  // =========================================================
+  // DETALLE DE LA FACTURA
+  // =========================================================
+
+  doc
+    .font('Helvetica-Bold')
     .fontSize(12)
     .fillColor(azulOscuro)
-    .text('CONTROL DEL SERVICIO', 55, 500);
+    .text('DETALLE DEL SERVICIO', 55, 470);
 
-  // Fecha ingreso
+  // Encabezado tabla
   doc
-    .roundedRect(55, 525, 150, 65, 8)
-    .lineWidth(1)
-    .strokeColor(grisLinea)
-    .stroke();
+    .rect(55, 492, 485, 32)
+    .fill(azulOscuro);
 
   doc
     .font('Helvetica-Bold')
+    .fontSize(8)
+    .fillColor(blanco)
+    .text('DESCRIPCIÓN', 70, 503);
+
+  doc
+    .text('CANT.', 340, 503, {
+      width: 45,
+      align: 'center',
+    });
+
+  doc
+    .text('PRECIO', 395, 503, {
+      width: 65,
+      align: 'right',
+    });
+
+  doc
+    .text('TOTAL', 475, 503, {
+      width: 55,
+      align: 'right',
+    });
+
+  // Fila
+  doc
+    .rect(55, 524, 485, 58)
+    .fill('#FAFBFC');
+
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(9)
+    .fillColor(grisOscuro)
+    .text(servicio, 70, 541, {
+      width: 240,
+    });
+
+  doc
+    .font('Helvetica')
     .fontSize(8)
     .fillColor(grisTexto)
-    .text('FECHA DE INGRESO', 70, 540);
+    .text(`Servicio realizado a equipo: ${equipo}`, 70, 557, {
+      width: 240,
+    });
 
   doc
-    .font('Helvetica-Bold')
-    .fontSize(11)
+    .font('Helvetica')
+    .fontSize(9)
     .fillColor(grisOscuro)
-    .text(fechaIngreso, 70, 558);
-
-  // Fecha entrega
-  doc
-    .roundedRect(220, 525, 150, 65, 8)
-    .lineWidth(1)
-    .strokeColor(grisLinea)
-    .stroke();
+    .text('1', 340, 545, {
+      width: 45,
+      align: 'center',
+    });
 
   doc
-    .font('Helvetica-Bold')
-    .fontSize(8)
-    .fillColor(grisTexto)
-    .text('FECHA DE ENTREGA', 235, 540);
-
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(11)
+    .font('Helvetica')
+    .fontSize(9)
     .fillColor(grisOscuro)
-    .text(fechaEntrega, 235, 558);
-
-  // Estado
-  doc
-    .roundedRect(385, 525, 155, 65, 8)
-    .fill('#F0FDF4');
+    .text(`L. ${totalFormateado}`, 395, 545, {
+      width: 65,
+      align: 'right',
+    });
 
   doc
     .font('Helvetica-Bold')
-    .fontSize(8)
-    .fillColor(verde)
-    .text('ESTADO DEL SERVICIO', 400, 540);
-
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(11)
-    .fillColor(verde)
-    .text(estado, 400, 558, {
-      width: 125,
+    .fontSize(9)
+    .fillColor(grisOscuro)
+    .text(`L. ${totalFormateado}`, 475, 545, {
+      width: 55,
+      align: 'right',
     });
 
   // =========================================================
-  // IMAGEN DE COMPUTADORA / ILUSTRACIÓN
+  // RESUMEN DE PAGO
   // =========================================================
 
-  if (tieneComputadora) {
-    try {
-      doc.image(computadoraPath, 55, 615, {
-        fit: [150, 90],
-        align: 'center',
-        valign: 'center',
-      });
-    } catch (error) {
-      console.error('No se pudo cargar la imagen de computadora:', error);
-    }
-  } else {
-    // Ilustración vectorial alternativa
-    const x = 70;
-    const y = 625;
-
-    // Monitor
-    doc
-      .roundedRect(x, y, 120, 70, 7)
-      .lineWidth(3)
-      .strokeColor(azul)
-      .stroke();
-
-    // Pantalla
-    doc
-      .rect(x + 8, y + 8, 104, 50)
-      .fill(azulClaro);
-
-    // Línea decorativa en pantalla
-    doc
-      .moveTo(x + 25, y + 33)
-      .lineTo(x + 65, y + 33)
-      .lineWidth(4)
-      .strokeColor(azul)
-      .stroke();
-
-    doc
-      .moveTo(x + 25, y + 43)
-      .lineTo(x + 80, y + 43)
-      .lineWidth(3)
-      .strokeColor(azul)
-      .stroke();
-
-    // Base
-    doc
-      .moveTo(x + 50, y + 70)
-      .lineTo(x + 50, y + 82)
-      .lineWidth(4)
-      .strokeColor(azulOscuro)
-      .stroke();
-
-    doc
-      .moveTo(x + 30, y + 84)
-      .lineTo(x + 90, y + 84)
-      .lineWidth(5)
-      .strokeColor(azulOscuro)
-      .stroke();
-  }
-
-  // Texto institucional junto a la computadora
   doc
-    .font('Helvetica-Bold')
-    .fontSize(12)
-    .fillColor(azulOscuro)
-    .text('SERVICIO TÉCNICO', 240, 630);
+    .moveTo(330, 610)
+    .lineTo(540, 610)
+    .lineWidth(1)
+    .strokeColor(grisLinea)
+    .stroke();
 
   doc
     .font('Helvetica')
     .fontSize(9)
     .fillColor(grisTexto)
-    .text(
-      'Soluciones profesionales para el mantenimiento, diagnóstico y reparación de equipos informáticos.',
-      240,
-      652,
-      {
-        width: 260,
-        lineGap: 4,
-      }
-    );
-  // Total
-  doc
-    .roundedRect(350, 695, 190, 62, 8)
-    .fill(azulOscuro);
+    .text('Subtotal', 350, 625);
 
   doc
     .font('Helvetica-Bold')
-    .fontSize(10)
-    .fillColor('#C9DEFF')
-    .text('TOTAL A PAGAR', 365, 709);
-
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(19)
-    .fillColor(blanco)
-    .text(`$ ${totalFormateado}`, 365, 727, {
-      width: 160,
+    .fontSize(9)
+    .fillColor(grisOscuro)
+    .text(`L. ${totalFormateado}`, 450, 625, {
+      width: 80,
       align: 'right',
     });
 
-  // Pie de pagina
   doc
-    .moveTo(55, 795)
-    .lineTo(540, 795)
+    .font('Helvetica-Bold')
+    .fontSize(12)
+    .fillColor(azulOscuro)
+    .text('TOTAL', 350, 651);
+
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(17)
+    .fillColor(azulOscuro)
+    .text(`L. ${totalFormateado}`, 430, 647, {
+      width: 100,
+      align: 'right',
+    });
+
+  // =========================================================
+  // NOTA
+  // =========================================================
+
+  doc
+    .roundedRect(55, 610, 245, 85, 7)
+    .fill('#F8FAFC');
+
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(9)
+    .fillColor(azulOscuro)
+    .text('NOTA', 70, 627);
+
+  doc
+    .font('Helvetica')
+    .fontSize(8)
+    .fillColor(grisTexto)
+    .text(
+      'Gracias por confiar en Tecknos Design Computadoras. Conserva esta factura como comprobante del servicio realizado.',
+      70,
+      647,
+      {
+        width: 210,
+        lineGap: 3,
+      }
+    );
+
+  // =========================================================
+  // PIE DE FACTURA
+  // =========================================================
+
+  doc
+    .moveTo(55, 735)
+    .lineTo(540, 735)
     .lineWidth(1)
     .strokeColor(grisLinea)
     .stroke();
@@ -440,36 +497,28 @@ const generarFacturaPDF = (orden, res) => {
     .font('Helvetica-Bold')
     .fontSize(8)
     .fillColor(azulOscuro)
-    .text('My Support Technos Design', 55, 808);
-
-  doc
-    .font('Helvetica-Oblique')
-    .fontSize(8)
-    .fillColor(grisTexto)
-    .text(
-      'Innovamos, Desarrollamos, Conectamos.',
-      180,
-      808,
-      {
-        width: 230,
-        align: 'center',
-      }
-    );
+    .text('Tecknos Design Computadoras', 55, 751);
 
   doc
     .font('Helvetica')
     .fontSize(7)
     .fillColor(grisTexto)
     .text(
-      'Documento generado automáticamente por My Support Technos Design',
+      'Avenida 14 de Julio, sector Iglesia Suyapa, La Ceiba, Atlántida, Honduras',
       55,
-      823,
+      767,
       {
-        width: 485,
-        align: 'center',
+        width: 350,
       }
     );
-  // Respuesta HTTP
+
+  doc
+    .text('Tel. 3235-5440', 55, 780);
+
+  // =========================================================
+  // RESPUESTA HTTP
+  // =========================================================
+
   res.setHeader('Content-Type', 'application/pdf');
 
   res.setHeader(
